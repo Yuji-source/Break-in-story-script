@@ -1,10 +1,11 @@
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local TweenService = game:GetService("TweenService")
 
 -- Create GUI Root
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "BreakInScriptGUI"
+ScreenGui.Name = "Break In Story item spawner script"
 ScreenGui.ResetOnSpawn = false
 
 local parentSuccess = pcall(function()
@@ -14,7 +15,86 @@ if not parentSuccess then
     ScreenGui.Parent = Players.LocalPlayer:WaitForChild("PlayerGui")
 end
 
--- Shared Draggable Function
+-- ====================================================================
+-- LOADING SCREEN
+-- ====================================================================
+
+local LoadingFrame = Instance.new("Frame")
+LoadingFrame.Name = "LoadingFrame"
+LoadingFrame.Size = UDim2.new(0, 380, 0, 200)
+LoadingFrame.Position = UDim2.new(0.5, -190, 0.5, -100)
+LoadingFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 24)
+LoadingFrame.BorderSizePixel = 0
+LoadingFrame.Parent = ScreenGui
+
+local LoadingCorner = Instance.new("UICorner")
+LoadingCorner.CornerRadius = UDim.new(0, 10)
+LoadingCorner.Parent = LoadingFrame
+
+local LoadingStroke = Instance.new("UIStroke")
+LoadingStroke.Color = Color3.fromRGB(0, 170, 255)
+LoadingStroke.Thickness = 1.5
+LoadingStroke.Parent = LoadingFrame
+
+local LoadingTitle = Instance.new("TextLabel")
+LoadingTitle.Size = UDim2.new(1, 0, 0, 35)
+LoadingTitle.Position = UDim2.new(0, 0, 0, 10)
+LoadingTitle.BackgroundTransparency = 1
+LoadingTitle.Text = "Break In Story item spawner script"
+LoadingTitle.TextColor3 = Color3.fromRGB(240, 240, 240)
+LoadingTitle.TextSize = 14
+LoadingTitle.Font = Enum.Font.GothamBold
+LoadingTitle.Parent = LoadingFrame
+
+local StatusLabel = Instance.new("TextLabel")
+StatusLabel.Size = UDim2.new(1, -40, 0, 20)
+StatusLabel.Position = UDim2.new(0, 20, 0, 50)
+StatusLabel.BackgroundTransparency = 1
+StatusLabel.Text = "Initializing..."
+StatusLabel.TextColor3 = Color3.fromRGB(0, 170, 255)
+StatusLabel.TextSize = 12
+StatusLabel.Font = Enum.Font.GothamSemibold
+StatusLabel.Parent = LoadingFrame
+
+-- Outer Bar
+local BarBackground = Instance.new("Frame")
+BarBackground.Size = UDim2.new(1, -40, 0, 16)
+BarBackground.Position = UDim2.new(0, 20, 0, 75)
+BarBackground.BackgroundColor3 = Color3.fromRGB(35, 35, 42)
+BarBackground.BorderSizePixel = 0
+BarBackground.Parent = LoadingFrame
+
+local BarBgCorner = Instance.new("UICorner")
+BarBgCorner.CornerRadius = UDim.new(0, 8)
+BarBgCorner.Parent = BarBackground
+
+-- Inner Fill Bar
+local BarFill = Instance.new("Frame")
+BarFill.Size = UDim2.new(0, 0, 1, 0)
+BarFill.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
+BarFill.BorderSizePixel = 0
+BarFill.Parent = BarBackground
+
+local BarFillCorner = Instance.new("UICorner")
+BarFillCorner.CornerRadius = UDim.new(0, 8)
+BarFillCorner.Parent = BarFill
+
+-- Credit Text Under Loading Bar
+local CreditLabel = Instance.new("TextLabel")
+CreditLabel.Size = UDim2.new(1, -20, 0, 60)
+CreditLabel.Position = UDim2.new(0, 10, 0, 115)
+CreditLabel.BackgroundTransparency = 1
+CreditLabel.Text = "Script made by Yuji_scripts on Rscripts.net"
+CreditLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+CreditLabel.TextSize = 15
+CreditLabel.Font = Enum.Font.GothamBold
+CreditLabel.TextWrapped = true
+CreditLabel.Parent = LoadingFrame
+
+-- ====================================================================
+-- MAIN GUI COMPONENTS (Initially Hidden)
+-- ====================================================================
+
 local function makeDraggable(guiObject)
     local dragging, dragInput, dragStart, startPos
     guiObject.InputBegan:Connect(function(input)
@@ -53,6 +133,7 @@ ToggleBtn.TextColor3 = Color3.fromRGB(0, 170, 255)
 ToggleBtn.Font = Enum.Font.GothamBold
 ToggleBtn.TextSize = 12
 ToggleBtn.BorderSizePixel = 0
+ToggleBtn.Visible = false
 ToggleBtn.Parent = ScreenGui
 
 local ToggleCorner = Instance.new("UICorner")
@@ -66,13 +147,14 @@ ToggleStroke.Parent = ToggleBtn
 
 makeDraggable(ToggleBtn)
 
--- Compact Main Window (430x220)
+-- Main Frame (430x330)
 local MainFrame = Instance.new("Frame")
 MainFrame.Name = "MainFrame"
-MainFrame.Size = UDim2.new(0, 430, 0, 220)
-MainFrame.Position = UDim2.new(0.5, -215, 0.5, -110)
+MainFrame.Size = UDim2.new(0, 430, 0, 330)
+MainFrame.Position = UDim2.new(0.5, -215, 0.5, -165)
 MainFrame.BackgroundColor3 = Color3.fromRGB(24, 24, 28)
 MainFrame.BorderSizePixel = 0
+MainFrame.Visible = false
 MainFrame.Parent = ScreenGui
 
 local MainCorner = Instance.new("UICorner")
@@ -86,19 +168,18 @@ MainStroke.Parent = MainFrame
 
 makeDraggable(MainFrame)
 
--- Toggle Visibility Listener
 ToggleBtn.MouseButton1Click:Connect(function()
     MainFrame.Visible = not MainFrame.Visible
 end)
 
--- Title Label
+-- Header Title
 local TitleLabel = Instance.new("TextLabel")
 TitleLabel.Name = "TitleLabel"
 TitleLabel.Size = UDim2.new(1, 0, 0, 30)
 TitleLabel.BackgroundTransparency = 1
-TitleLabel.Text = "Break in Story Script"
+TitleLabel.Text = "Break In Story item spawner script"
 TitleLabel.TextColor3 = Color3.fromRGB(240, 240, 240)
-TitleLabel.TextSize = 14
+TitleLabel.TextSize = 13
 TitleLabel.Font = Enum.Font.GothamBold
 TitleLabel.Parent = MainFrame
 
@@ -174,23 +255,26 @@ local function createSection(categoryName, titleText, position, size, items)
     end
 end
 
--- 1. Food Section (Left Side)
-createSection("FOOD", "FOOD", UDim2.new(0, 10, 0, 32), UDim2.new(0, 200, 0, 135), {
-    "Apple", "Cookie", "BloxyCola", "Bag Of Chips", 
-    "Lollipop", "Pie", "Pizza", "High Sugar Bloxy Cola"
+-- 1. Food Section (Top Left)
+createSection("FOOD", "FOOD", UDim2.new(0, 10, 0, 32), UDim2.new(0, 200, 0, 120), {
+    "Apple", "Cookie", "BloxyCola", "Chips", 
+    "Lollipop", "Pie", "Pizza", "ExpiredBloxyCola"
 })
 
--- 2. Weapons Section (Right Side)
-createSection("WEAPONS", "WEAPONS", UDim2.new(0, 220, 0, 32), UDim2.new(0, 200, 0, 135), {
-    "Wrench", "BaseBall bat", "Hammer", "PitchFork", "CrowBar", 
-    "IceBreaker", "Broom", "ToolBox", "Toy Sword", "Gun", 
-    "Classic Sword", "MachineGun", "Golden Crowbar"
+-- 2. Weapons Section (Top Right)
+createSection("WEAPONS", "WEAPONS", UDim2.new(0, 220, 0, 32), UDim2.new(0, 200, 0, 120), {
+    "Wrench", "Bat", "Hammer", "PitchFork", "CrowBar", "Broom", "Gun"
 })
 
--- Single Spawn Action Button Across the Bottom
+-- 3. Miscellaneous Section (Bottom Center)
+createSection("MISCELLANEOUS", "MISCELLANEOUS", UDim2.new(0.5, -130, 0, 158), UDim2.new(0, 260, 0, 85), {
+    "Plank"
+})
+
+-- Spawn Action Button
 local SpawnBtn = Instance.new("TextButton")
 SpawnBtn.Size = UDim2.new(0, 410, 0, 34)
-SpawnBtn.Position = UDim2.new(0, 10, 0, 175)
+SpawnBtn.Position = UDim2.new(0, 10, 0, 280)
 SpawnBtn.BackgroundColor3 = Color3.fromRGB(0, 160, 100)
 SpawnBtn.Text = "Spawn Selected Item"
 SpawnBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -203,7 +287,7 @@ local SpawnCorner = Instance.new("UICorner")
 SpawnCorner.CornerRadius = UDim.new(0, 6)
 SpawnCorner.Parent = SpawnBtn
 
--- Spawn Remote Execution Logic
+-- Spawn Remote Execution
 SpawnBtn.MouseButton1Click:Connect(function()
     if not selectedItemName then
         warn("No item selected from the menu!")
@@ -211,17 +295,47 @@ SpawnBtn.MouseButton1Click:Connect(function()
     end
     
     if selectedCategory == "WEAPONS" then
-        -- Execute BasementWeapon remote for weapons
         local args = {
             true,
             selectedItemName
         }
         ReplicatedStorage:WaitForChild("RemoteEvents"):WaitForChild("BasementWeapon"):FireServer(unpack(args))
     else
-        -- Execute GiveTool remote for food items
+        local itemToSpawn = selectedItemName
+        if itemToSpawn == "Pizza" then
+            itemToSpawn = "Pizza2"
+        end
+
         local args = {
-            selectedItemName
+            itemToSpawn
         }
         ReplicatedStorage:WaitForChild("RemoteEvents"):WaitForChild("GiveTool"):FireServer(unpack(args))
     end
+end)
+
+-- ====================================================================
+-- LOADING SEQUENCE CONTROLLER
+-- ====================================================================
+
+task.spawn(function()
+    local stages = {
+        {pct = 0.20, text = "creating gui", waitTime = 2},
+        {pct = 0.40, text = "loading features", waitTime = 2},
+        {pct = 0.60, text = "fetching remotes", waitTime = 2},
+        {pct = 0.80, text = "finalizing....", waitTime = 2},
+        {pct = 1.00, text = "script loaded successfully!", waitTime = 1}
+    }
+
+    for _, stage in ipairs(stages) do
+        StatusLabel.Text = stage.text
+        TweenService:Create(BarFill, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+            Size = UDim2.new(stage.pct, 0, 1, 0)
+        }):Play()
+        task.wait(stage.waitTime)
+    end
+
+    -- Finish loading: Hide loader, show main UI
+    LoadingFrame:Destroy()
+    MainFrame.Visible = true
+    ToggleBtn.Visible = true
 end)
